@@ -6,8 +6,40 @@
   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 <body>
   <h1>Map Reduce</h1>
+  <label for="term">Term:</label>
+  <input name="term" type="text"/>
+  <h3>--</h3>
   <script>
+    var $result = $('h3')
 
+    $('input[name=term]').on('keyup', function() {
+        $result.html(find($(this).val()))
+    })
+
+  </script>
+  <script>
+    var text = "FROM pg_class t\n INNER JOIN pg_index d ON t.oid = d.indrelid\n INNER JOIN pg_class i ON d.indexrelid = i.oid\n WHERE i.relkind = 'i'\n AND d.indisprimary = 'f'\n AND t.relname = 'collaborators'\n AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY"
+    var data = text.split(/\n/)
+
+    var find = function(term) {
+        var r = new RegExp(term)
+
+        var map = function(a, b) {
+            return a + (r.test(b) ? 1 : 0);
+        }
+
+        return reduce(map, data, 0 ); 
+    }
+
+    var reduce = function(fn, a, init) {
+        var s = init;
+
+        for (i = 0; i < a.length; i++) {
+            s = fn( s, a[i] );
+        }
+
+        return s;
+    }
   </script>
 </body>
 </html>
